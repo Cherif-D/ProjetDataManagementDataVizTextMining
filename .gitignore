@@ -1,5 +1,8 @@
+# Ignorer l'environnement virtuel
+env/
+# Fichiers inutiles à ignorer
 __pycache__/
-.ipynb_checkpoints/
 *.pyc
-.env
+.ipynb_checkpoints/
 *.csv
+.env
