@@ -1,3 +1,5 @@
+import pandas as pd
+
 ticker_to_names = {
     'AAPL': 'Apple Inc.',
     'ABBV': 'AbbVie Inc.',
@@ -109,3 +111,11 @@ names_to_ticker = {
     'Walmart Inc.': 'WMT',
     'Exxon Mobil Corp.': 'XOM'
 }
+
+def adjust_to_last_friday(date):
+    weekday = date.weekday()
+    if weekday == 5:
+        return date - pd.Timedelta(days=1)
+    elif weekday == 6:
+        return date - pd.Timedelta(days=2)
+    return date
