@@ -3,6 +3,7 @@ import streamlit as st
 import plotly.graph_objects as go
 import pandas as pd
 
+import texts
 from util import (  ticker_to_name,
                     name_to_ticker,
                     adjust_to_last_friday,
@@ -11,8 +12,13 @@ from util import (  ticker_to_name,
                     secteur_map,
                     benchmark_map   )
 
+#CREATION D UNE FONCTION D'IMPORT DES DIFFERENTS DATAFRAMES AFIN QU IL SOIT CONSERVE EN MEMOIRE
+@st.cache_data
+def load_df(path):
+    return pd.read_csv(path)
+
 #IMPORT DU DATAFRAME FINAL
-data = pd.read_csv("data/dataframe_final_pret_pour_streamlit.csv")
+data = load_df("data/dataframe_final_pret_pour_streamlit.csv")
 #CONVERSION DE LA COLONNE DATE EN DATETIME POUR L'ANALYSE TEMPORELLE
 data["Date"] = pd.to_datetime(data["Date"])
 #CONVERTION EN TYPE CATEGORY POUR ACCELERER CERTAINE OPERATION
@@ -24,7 +30,7 @@ data["Benchmark"] = data["Benchmark"].astype("category", copy=False)
 ###   CONFIGURATION DE LA SIDEBAR   ##############################################################################
 ##################################################################################################################
 
-st.sidebar.header("Paremètre")
+st.sidebar.markdown("### :material/settings: Paremètre")
 
 presentation = st.sidebar.toggle("Présentation du jeu de données")
 
@@ -89,7 +95,20 @@ else:
 
 if presentation and not submit:
 
+    pre_data =load_df("data/donnees_financieres_300k_lignes.csv")
+    pre_data_2 = load_df("data/donnees_financieres_clean.csv")
     st.header("Présentation du jeu de données")
+
+    st.markdown(f":blue-badge[:material/info: Information] {texts.text_1}")
+    st.subheader("Jeu de données avant nettoyage")
+    st.dataframe(pre_data, use_container_width=True)
+    st.info(    f"nombre de ligne : **{pre_data.shape[0]}**"
+                f"\n\nnombre de colonne : **{pre_data.shape[1]}**"  )
+
+    st.subheader("Jeu de données après nettoyage")
+    st.dataframe(pre_data_2, use_container_width=True)
+    st.info(    f"nombre de ligne : **{pre_data_2.shape[0]}**"
+                f"\n\nnombre de colonne : **{pre_data_2.shape[1]}**"  )
 
     st.subheader("Jeu de données après traitement")
     st.dataframe(data, use_container_width=True)
