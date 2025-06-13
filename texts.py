@@ -15,15 +15,15 @@ pour les **ETFs** et les **Actions** si il y a plus de **60% de valeurs manquant
 **.ffill()** et **.bfill()**"""
 
 text_3 = """Présentation des variables :\n
-Date : datetime — date de l'observation des données de marché.\n
-Ticker : category — abréviation unique (ex: AAPL, BTC-USD) représentant un actif financier coté.\n
-Prix : float64 — prix de clôture de l'actif à la date donnée.\n
-Type_actif : category — nature de l'actif (ex: Action, Crypto, ETF).\n
-Secteur : category — secteur économique auquel appartient l'actif (ex: Technologie, Santé).\n
-Rendement : float64 — variation du prix entre deux jours (souvent en pourcentage).\n
-Année : float64 — année civile de l'observation (utile pour des regroupements temporels).\n
-Volatilité_30j : float64 — écart-type des rendements sur les 30 derniers jours (risque à court terme).\n
-Volatilité_30j_annualisée : float64 — projection annuelle de la volatilité sur 30 jours (standardisée sur 252 jours).\n
-Volatilité_quotidienne : float64 — volatilité observée sur une base quotidienne.\n
-Benchmark : category — indice de référence associé à l'actif (ex: S&P 500, Nasdaq).\n
-Performance_vs_Benchmark : float64 — différence de performance entre l'actif et son benchmark sur une période donnée."""
+**Date** : datetime — date de l'observation des données de marché.\n
+**Ticker** : category — abréviation unique (ex: AAPL, BTC-USD) représentant un actif financier coté.\n
+**Prix** : float64 — prix de clôture de l'actif à la date donnée.\n
+**Type_actif** : category — nature de l'actif (ex: Action, Crypto, ETF).\n
+**Secteur** : category — secteur économique auquel appartient l'actif (ex: Technologie, Santé).\n
+**Rendement** : float64 — variation du prix entre deux jours (souvent en pourcentage).\n
+**Année** : Int64 — année civile de l'observation (utile pour des regroupements temporels).\n
+**Volatilité_30j** : float64 — écart-type des rendements sur les 30 derniers jours (risque à court terme).\n
+**Volatilité_30j_annualisée** : float64 — projection annuelle de la volatilité sur 30 jours (standardisée sur 252 jours).\n
+**Volatilité_quotidienne** : float64 — volatilité observée sur une base quotidienne.\n
+**Benchmark** : category — indice de référence associé à l'actif (ex: S&P 500, Nasdaq).\n
+**Performance_vs_Benchmark** : float64 — différence de performance entre l'actif et son benchmark sur une période donnée."""

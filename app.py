@@ -4,6 +4,7 @@ import plotly.graph_objects as go
 import pandas as pd
 
 import texts
+import graph
 from util import (  ticker_to_name,
                     name_to_ticker,
                     adjust_to_last_friday,
@@ -96,8 +97,10 @@ else:
 
 if presentation and not submit:
 
-    pre_data =load_df("data/donnees_financieres_300k_lignes.csv")
+    pre_data = load_df("data/donnees_financieres_300k_lignes.csv")
     pre_data_2 = load_df("data/donnees_financieres_clean.csv")
+    pre_data["Ticker"] = pre_data["Ticker"].astype("category", copy=False)
+    pre_data_2["Ticker"] = pre_data_2["Ticker"].astype("category", copy=False)
     st.header("Présentation du jeu de données")
 
     st.markdown(f":blue-badge[:material/info: Information] \n\n{texts.text_1}")
@@ -110,8 +113,19 @@ if presentation and not submit:
     st.markdown(f":blue-badge[:material/info: Information] \n\n{texts.text_2}")
     col_1, col_2= st.columns([4,1])
     with col_2:
-        if st.toggle("En voir plus",  key="voir_plus_1"):
-            st.plotly_chart()
+        see_more = st.toggle("En voir plus",  key="voir_plus_1")
+    if see_more:
+        col_1, col_2= st.columns(2)
+        with col_1:
+            st.markdown("###### Description de la colonne prix")
+            st.dataframe(pre_data.describe())
+            st.markdown("###### Période de couverture des données")
+            st.pyplot(graph.graph_coverage(pre_data))
+        with col_2:
+            st.markdown("###### Actifs avec le plus de valeurs manquantes")
+            st.pyplot(graph.graph_missing_value(pre_data))
+            st.markdown("###### Distribution Avant/Après nettoyage")
+            st.pyplot(graph.graph_price_distrib(pre_data,pre_data_2))
     st.dataframe(pre_data_2, use_container_width=True)
     st.info(    f"nombre de ligne : **{pre_data_2.shape[0]}**"
                 f"\n\nnombre de colonne : **{pre_data_2.shape[1]}**"  )
