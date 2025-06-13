@@ -1,4 +1,5 @@
 import pandas as pd
+from datetime import datetime
 
 ticker_to_name = {
     'AAPL': 'Apple Inc.',
@@ -58,7 +59,7 @@ ticker_to_name = {
 
 name_to_ticker = {v: k for k, v in ticker_to_name.items()}
 
-def adjust_to_last_friday(date):
+def adjust_to_last_friday(date:datetime) -> datetime:
     weekday = date.weekday()
     if weekday == 5:
         return date - pd.Timedelta(days=1)

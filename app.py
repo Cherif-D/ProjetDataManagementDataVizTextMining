@@ -25,6 +25,7 @@ data["Date"] = pd.to_datetime(data["Date"])
 data["Type_actif"] = data["Type_actif"].astype("category", copy=False)
 data["Secteur"] = data["Secteur"].astype("category", copy=False)
 data["Benchmark"] = data["Benchmark"].astype("category", copy=False)
+data["Ticker"] = data["Ticker"].astype("category", copy=False)
 
 ##################################################################################################################
 ###   CONFIGURATION DE LA SIDEBAR   ##############################################################################
@@ -99,18 +100,25 @@ if presentation and not submit:
     pre_data_2 = load_df("data/donnees_financieres_clean.csv")
     st.header("Présentation du jeu de données")
 
-    st.markdown(f":blue-badge[:material/info: Information] {texts.text_1}")
+    st.markdown(f":blue-badge[:material/info: Information] \n\n{texts.text_1}")
     st.subheader("Jeu de données avant nettoyage")
     st.dataframe(pre_data, use_container_width=True)
     st.info(    f"nombre de ligne : **{pre_data.shape[0]}**"
                 f"\n\nnombre de colonne : **{pre_data.shape[1]}**"  )
 
     st.subheader("Jeu de données après nettoyage")
+    st.markdown(f":blue-badge[:material/info: Information] \n\n{texts.text_2}")
+    col_1, col_2= st.columns([4,1])
+    with col_2:
+        if st.toggle("En voir plus",  key="voir_plus_1"):
+            st.plotly_chart()
     st.dataframe(pre_data_2, use_container_width=True)
     st.info(    f"nombre de ligne : **{pre_data_2.shape[0]}**"
                 f"\n\nnombre de colonne : **{pre_data_2.shape[1]}**"  )
 
     st.subheader("Jeu de données après traitement")
+    if st.toggle("En voir plus",  key="voir_plus_2"):
+        st.markdown(f":blue-badge[:material/info: Information] \n\n{texts.text_3}")
     st.dataframe(data, use_container_width=True)
     st.info(    f"nombre de ligne : **{data.shape[0]}**"
                 f"\n\nnombre de colonne : **{data.shape[1]}**"  )
