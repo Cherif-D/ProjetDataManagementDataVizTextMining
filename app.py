@@ -92,7 +92,7 @@ else:
     submit = st.sidebar.button("Comparer", use_container_width=True)
 
 ##################################################################################################################
-###   MISE EN PAGE   #############################################################################################
+###   MISE EN PAGE DE LA PRESENTATION DE JEU DE DONNEES ##########################################################
 ##################################################################################################################
 
 if presentation and not submit:
@@ -101,6 +101,7 @@ if presentation and not submit:
     pre_data_2 = load_df("data/donnees_financieres_clean.csv")
     pre_data["Ticker"] = pre_data["Ticker"].astype("category", copy=False)
     pre_data_2["Ticker"] = pre_data_2["Ticker"].astype("category", copy=False)
+
     st.header("Présentation du jeu de données")
 
     st.markdown(f":blue-badge[:material/info: Information] \n\n{texts.text_1}")
@@ -136,3 +137,20 @@ if presentation and not submit:
     st.dataframe(data, use_container_width=True)
     st.info(    f"nombre de ligne : **{data.shape[0]}**"
                 f"\n\nnombre de colonne : **{data.shape[1]}**"  )
+    
+##################################################################################################################
+###   MISE EN PAGE SANS COMPARAISON ##############################################################################
+##################################################################################################################
+    
+if submit and not comparison:
+    
+    st.markdown(f"# :green-badge[:material/analytics: Analyse] Analyse de {asset_name}")
+
+    st.markdown(f"### :green-badge[:material/finance_mode: Prix] Graphique de {asset_name}")
+    st.plotly_chart(graph.graph_price(data,asset_ticker,start_date,end_date))
+
+    st.markdown(f"### :green-badge[:material/bar_chart_4_bars: Distribution] Histogramme des rendements de {asset_name}")
+    st.plotly_chart(graph.graph_returns_distrib(data,asset_ticker,start_date,end_date))
+
+    st.markdown(f"### :green-badge[:material/electric_bolt: Risque] Volatilité des rendements de {asset_name}")
+    st.plotly_chart(graph.graph_volatility(data,asset_ticker,start_date,end_date))
