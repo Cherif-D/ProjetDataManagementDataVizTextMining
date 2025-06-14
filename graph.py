@@ -2,6 +2,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import math
 import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 from typing import Union
 import datetime
 
@@ -124,6 +125,93 @@ def graph_volatility(   df:pd.DataFrame,
                                             name = str(asset_ticker),    )   )
     
     fig.update_layout(  xaxis_title = "Date",
-                        yaxis_title = "Volatilité"  )
+                        yaxis_title = "Volatilité mensuelle"  )
 
+    return fig
+
+def graph_asset_vs_benchmark(   df:pd.DataFrame,
+                                asset_ticker:Union[str,pd.Categorical],
+                                benchmark_ticker:Union[str,pd.Categorical],
+                                start_date:datetime,
+                                end_date:datetime   ) -> go.Figure:
+    df1 = df.copy()
+    df1 = df1[["Date","Volatilité_30j","Rendement"]][df1["Ticker"] == asset_ticker]
+    df1["Rendement"] /= 100
+    df1.set_index("Date",inplace=True)
+    df1 = df1.loc[start_date:end_date,:]
+    mean_return = df1["Rendement"].rolling(30).mean().mean()
+    mean_vol = df1["Volatilité_30j"].mean()
+
+    df = df[["Date","Volatilité_30j","Rendement"]][df["Ticker"] == benchmark_ticker]
+    df["Rendement"] /= 100
+    df.set_index("Date",inplace=True)
+    df = df.loc[start_date:end_date,:]
+    mean_return_benchmark = df["Rendement"].rolling(30).mean().mean()
+    mean_vol_benchmark = df["Volatilité_30j"].mean()
+
+    fig = make_subplots(    rows=1, 
+                            cols=2, 
+                            subplot_titles=(    "Moyenne des moyennes des rendements", 
+                                                "Moyenne des écart-types des rendements"    )   )
+
+    fig.add_trace(  go.Bar  (   name=f"{asset_ticker}", 
+                                x=["Actif"], 
+                                y=[mean_return], 
+                                marker_color="green"    ), 
+                    row=1, 
+                    col=1   )
+    
+    fig.add_trace(  go.Bar( name=f"{benchmark_ticker}", 
+                            x=["Benchmark"], 
+                            y=[mean_return_benchmark], 
+                            marker_color="lightgreen"   ), 
+                    row=1, 
+                    col=1   )
+
+    fig.add_trace(  go.Bar( name=f"{asset_ticker}", 
+                            x=["Actif"], 
+                            y=[mean_vol], 
+                            marker_color="red"  ), 
+                    row=1, 
+                    col=2   )
+    
+    fig.add_trace(  go.Bar( name=f"{benchmark_ticker}", 
+                            x=["Benchmark"], 
+                            y=[mean_vol_benchmark], 
+                            marker_color="salmon"   ), 
+                    row=1, 
+                    col=2   )
+
+    fig.update_layout(  barmode="group",
+                        yaxis_title="Valeur",
+                        xaxis_title="Indicateur"    )
+
+    return fig
+
+def graph_price_asset_and_benchmark(    df:pd.DataFrame,
+                                        asset_ticker:Union[str,pd.Categorical],
+                                        benchmark_ticker:Union[str,pd.Categorical],
+                                        start_date:datetime,
+                                        end_date:datetime   ) -> go.Figure:
+
+    df1 = df.copy()
+    df1 = df1[["Date","Prix"]][df1["Ticker"] == asset_ticker]
+    df1.set_index("Date",inplace=True)
+    df1 = df1.loc[start_date:end_date,:]
+
+    df = df[["Date","Prix"]][df["Ticker"] == benchmark_ticker]
+    df.set_index("Date",inplace=True)
+    df = df.loc[start_date:end_date,:]    
+
+    fig = go.Figure(    data=go.Scatter(    x=df1.index,
+                                            y=df1["Prix"],
+                                            name = str(asset_ticker)    )   )
+
+    fig.add_scatter(    x=df1.index,
+                        y=df["Prix"],
+                        name=str(benchmark_ticker)  )
+
+    fig.update_layout(  xaxis_title = "Date",
+                        yaxis_title = "Prix"    )
+    
     return fig

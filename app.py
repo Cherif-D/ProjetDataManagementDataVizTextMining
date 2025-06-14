@@ -35,6 +35,7 @@ data["Ticker"] = data["Ticker"].astype("category", copy=False)
 st.sidebar.markdown("### :material/settings: Paremètre")
 
 presentation = st.sidebar.toggle("Présentation du jeu de données")
+text_analysis = st.sidebar.toggle("Analyseur de text")
 
 st.sidebar.subheader("Analyse")
 comparison = st.sidebar.toggle("Comparer plusieurs actifs")
@@ -92,7 +93,7 @@ else:
     submit = st.sidebar.button("Comparer", use_container_width=True)
 
 ##################################################################################################################
-###   MISE EN PAGE DE LA PRESENTATION DE JEU DE DONNEES ##########################################################
+###   MISE EN PAGE DE LA PRESENTATION DU JEU DE DONNEES ##########################################################
 ##################################################################################################################
 
 if presentation and not submit:
@@ -154,3 +155,11 @@ if submit and not comparison:
 
     st.markdown(f"### :green-badge[:material/electric_bolt: Risque] Volatilité des rendements de {asset_name}")
     st.plotly_chart(graph.graph_volatility(data,asset_ticker,start_date,end_date))
+
+    if asset_ticker not in data["Benchmark"].unique():
+
+        st.markdown(f"### :green-badge[:material/balance: Versus] {asset_name} VS benchmark : {benchmark_map[asset_ticker]}")
+        st.plotly_chart(graph.graph_asset_vs_benchmark(data,asset_ticker,benchmark_map[asset_ticker],start_date,end_date))
+
+        st.markdown(f"### :green-badge[:material/balance: Versus] {asset_name} & benchmark : {benchmark_map[asset_ticker]}")
+        st.plotly_chart(graph.graph_price_asset_and_benchmark(data,asset_ticker,benchmark_map[asset_ticker],start_date,end_date))      

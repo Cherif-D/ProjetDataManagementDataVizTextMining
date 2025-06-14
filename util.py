@@ -67,12 +67,10 @@ def adjust_to_last_friday(date:datetime) -> datetime:
         return date - pd.Timedelta(days=2)
     return date
 
-compared_by = {
-    "Actif":"Ticker",
-    "Type d'actif":"Type_actif",
-    "Secteur":"Secteur",
-    "Benchmark":"Benchmark"
-}
+compared_by = { "Actif":"Ticker",
+                "Type d'actif":"Type_actif",
+                "Secteur":"Secteur",
+                "Benchmark":"Benchmark" }
 
 type_map = {
     # 🔶 Cryptomonnaies
