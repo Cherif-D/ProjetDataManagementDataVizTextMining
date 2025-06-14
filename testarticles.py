@@ -83,7 +83,7 @@ if 'texte_nettoye' in st.session_state:
 
 # Chargement et entraînement du modèle sentiment
 URL_CSV = "https://raw.githubusercontent.com/Cherif-D/ProjetDataManagementDataVizTextMining/main/sentiment_finance.csv"
-LOCAL_CSV = "sentiment_finance.csv"
+LOCAL_CSV = "sentiment_training.csv"
 
 if not os.path.exists(LOCAL_CSV):
     st.info("Téléchargement des données d'entraînement...")
