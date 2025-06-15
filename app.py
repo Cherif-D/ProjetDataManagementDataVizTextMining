@@ -1,10 +1,22 @@
+import sys
+import os
+
+if "__file__" in globals():
+    script_dir = os.path.dirname(os.path.abspath(__file__)) 
+else:
+    script_dir = os.getcwd()
+os.chdir(script_dir)
+
 import streamlit as st
 
 import plotly.graph_objects as go
 import pandas as pd
+import joblib
 
 import texts
 import graph
+from text_sentiment import (    text_cleaner,
+                                generer_wordcloud   )
 from util import (  ticker_to_name,
                     name_to_ticker,
                     adjust_to_last_friday,
@@ -15,7 +27,8 @@ from util import (  ticker_to_name,
 
 #CREATION D UNE FONCTION D'IMPORT DES DIFFERENTS DATAFRAMES AFIN QU IL SOIT CONSERVE EN MEMOIRE
 @st.cache_data
-def load_df(path):
+def load_df(path:str) -> pd.DataFrame:
+
     return pd.read_csv(path)
 
 #IMPORT DU DATAFRAME FINAL
@@ -34,7 +47,7 @@ data["Ticker"] = data["Ticker"].astype("category", copy=False)
 
 st.sidebar.markdown("### :material/settings: Paremètre")
 
-presentation = st.sidebar.toggle("Présentation du jeu de données")
+presentation = st.sidebar.toggle("Présentation du jeu de données",value=True)
 text_analysis = st.sidebar.toggle("Analyseur de text")
 
 st.sidebar.subheader("Analyse")
@@ -89,7 +102,8 @@ else:
         asset_benchmark = st.sidebar.multiselect("Sélectionner un ou plusieurs benchmarks", list(data["Benchmark"].unique()))
         asset_list = [name for name in ticker_to_name.values() if benchmark_map[name_to_ticker[name]] in asset_benchmark]
 
-    asset_names =  st.sidebar.multiselect("Sélectionner plusieurs actifs", asset_list)
+    group = st.sidebar.toggle("Par groupe",value=True) if comparison_type != "Actif" else None
+    asset_names =  st.sidebar.multiselect("Sélectionner plusieurs actifs", asset_list) if not group else asset_list
     asset_tickers = [name_to_ticker[name] for name in asset_names]
 
     submit = st.sidebar.button("Comparer", use_container_width=True)
@@ -97,9 +111,13 @@ else:
     if "skip" in st.session_state:
         if "asset_names" in st.session_state:
             st.session_state["skip"] = True if st.session_state["asset_names"] == set(asset_names) else False
+            presentation = False if st.session_state["asset_names"] == set(asset_names) else presentation
 
     if len(asset_names) < 2:
         submit = False
+        group_small = st.sidebar.badge( "Ce groupe contient moins de 2 actifs",
+                                        icon=":material/error:",
+                                        color="red" ) if group else None
         st.sidebar.badge("Sélectionner au moins 2 actifs",icon=":material/error:",color="red")
 
 ##################################################################################################################
@@ -239,3 +257,49 @@ if (submit and comparison) or (st.session_state.get("skip", False)):
 
     st.markdown(f"### :violet-badge[:material/stacked_bar_chart: Barplot] Volatilité des actifs")
     st.plotly_chart(graph.graph_boxplot_vol(data,asset_tickers,start_date,end_date))
+
+if text_analysis:
+
+    st.markdown(f"# :grey-badge[:material/notes:] Text mining")
+
+    col_1, col_2 = st.columns(2)
+
+    with col_1:
+
+        text = st.text_area(label="Texte à analyser", value=texts.text_4)
+
+    with col_2:
+        
+        text = text_cleaner(text)
+        st.pyplot(generer_wordcloud(text))
+
+    st.markdown(f"# :grey-badge[:material/star:] Résultat")
+
+    @st.cache_data
+    def joblib_load(path:str):
+
+        return joblib.load(path)
+
+    model = joblib_load("sentiment_model.joblib")
+    vectorizer = joblib_load("tfidf_vectorizer.joblib")
+    classification_report = joblib_load("classification_report.joblib")
+
+    text = vectorizer.transform([text])
+    y_pred = model.predict(text)
+
+    match y_pred:
+
+        case 0:
+            sentiment = "Négatif"
+            badge_sentiment = ":material/sentiment_dissatisfied:"
+            sentiment_color = "red"
+        case 1:
+            sentiment = "Neutre"
+            badge_sentiment = ":material/sentiment_neutral:"
+            sentiment_color = "grey"
+        case 2:
+            sentiment = "Positif"
+            badge_sentiment = ":material/sentiment_satisfied:"
+            sentiment_color = "green"
+
+    st.badge(label=f"Le sentiment de l'article est {sentiment}", icon=badge_sentiment, color=sentiment_color)

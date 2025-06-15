@@ -227,9 +227,9 @@ def graph_corr( df:pd.DataFrame,
                 asset_tickers:Union[str,pd.Categorical],
                 start_date:datetime,
                 end_date:datetime   ) -> go.Figure:
-    
+
     df = df[df["Ticker"].isin(asset_tickers)]
-    df = df.pivot_table(index="Date", columns="Ticker",values="Prix")
+    df = df.pivot_table(index="Date", columns="Ticker",values="Prix",observed=False)
     df = df.loc[start_date:end_date]
     df = df.pct_change()
     df = df.corr()
