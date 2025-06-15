@@ -42,6 +42,8 @@ comparison = st.sidebar.toggle("Comparer plusieurs actifs")
 
 if not comparison:
 
+    st.session_state["skip"] = False
+
     asset_name = st.sidebar.selectbox("Sélectionner un actif", list(ticker_to_name.values()))
     asset_ticker = name_to_ticker[asset_name]
 
@@ -51,7 +53,7 @@ if not comparison:
 
     start_date = st.sidebar.date_input( "Date de début",
                                         date_first_different_price,
-                                        date_first_different_price,
+                                        min_value=date_first_different_price,
                                         max_value=data["Date"][data["Ticker"] == asset_ticker].iloc[-20] )
     
     end_date = st.sidebar.date_input(   "Date de fin",
@@ -92,11 +94,21 @@ else:
 
     submit = st.sidebar.button("Comparer", use_container_width=True)
 
+    if "skip" in st.session_state:
+        if "asset_names" in st.session_state:
+            st.session_state["skip"] = True if st.session_state["asset_names"] == set(asset_names) else False
+
+    if len(asset_names) < 2:
+        submit = False
+        st.sidebar.badge("Sélectionner au moins 2 actifs",icon=":material/error:",color="red")
+
 ##################################################################################################################
-###   MISE EN PAGE DE LA PRESENTATION DU JEU DE DONNEES ##########################################################
+###   MISE EN PAGE DE LA PRESENTATION DU JEU DE DONNEES   ########################################################
 ##################################################################################################################
 
 if presentation and not submit:
+
+    st.session_state["skip"] = False
 
     pre_data = load_df("data/donnees_financieres_300k_lignes.csv")
     pre_data_2 = load_df("data/donnees_financieres_clean.csv")
@@ -135,12 +147,14 @@ if presentation and not submit:
     st.subheader("Jeu de données après traitement")
     if st.toggle("En voir plus",  key="voir_plus_2"):
         st.markdown(f":blue-badge[:material/info: Information] \n\n{texts.text_3}")
+        st.markdown(f":blue-badge[:material/pie_chart: Pie Chart]")
+        st.plotly_chart(graph.graph_category_pie_chart(data,data["Ticker"].unique()))
     st.dataframe(data, use_container_width=True)
     st.info(    f"nombre de ligne : **{data.shape[0]}**"
                 f"\n\nnombre de colonne : **{data.shape[1]}**"  )
     
 ##################################################################################################################
-###   MISE EN PAGE SANS COMPARAISON ##############################################################################
+###   MISE EN PAGE SANS COMPARAISON   ############################################################################
 ##################################################################################################################
     
 if submit and not comparison:
@@ -156,10 +170,72 @@ if submit and not comparison:
     st.markdown(f"### :green-badge[:material/electric_bolt: Risque] Volatilité des rendements de {asset_name}")
     st.plotly_chart(graph.graph_volatility(data,asset_ticker,start_date,end_date))
 
+    st.markdown(f"### :green-badge[:material/electric_bolt: Risque] Volatilité des rendements de {asset_name}")
+    st.plotly_chart(graph.graph_boxplot_vol(data,asset_ticker,start_date,end_date))
+
     if asset_ticker not in data["Benchmark"].unique():
 
         st.markdown(f"### :green-badge[:material/balance: Versus] {asset_name} VS benchmark : {benchmark_map[asset_ticker]}")
         st.plotly_chart(graph.graph_asset_vs_benchmark(data,asset_ticker,benchmark_map[asset_ticker],start_date,end_date))
 
         st.markdown(f"### :green-badge[:material/balance: Versus] {asset_name} & benchmark : {benchmark_map[asset_ticker]}")
-        st.plotly_chart(graph.graph_price_asset_and_benchmark(data,asset_ticker,benchmark_map[asset_ticker],start_date,end_date))      
+        st.plotly_chart(graph.graph_price_asset_and_benchmark(data,asset_ticker,benchmark_map[asset_ticker],start_date,end_date))
+
+##################################################################################################################
+###   MISE EN PAGE AVEC COMPARAISON   ############################################################################
+##################################################################################################################
+
+if (submit and comparison) or (st.session_state.get("skip", False)):
+
+    st.session_state["skip"] = True
+    st.session_state["asset_names"] = set(asset_names)
+
+    match len(asset_names):
+
+        case 2:
+            comparison_title = f"Comparaison entre {asset_names[0]} et {asset_names[1]}"
+        case 3:
+            comparison_title = f"Comparaison entre {asset_names[0]}, {asset_names[1]} et {asset_names[2]}"
+        case x if x>3:
+            noms = ", ".join(asset_names[:-1])
+            comparison_title = f"Comparaison entre {noms} et {asset_names[-1]}"
+
+    st.markdown(f"# :violet-badge[:material/balance: Versus] {comparison_title}")
+
+    first_values = []
+    for ticker in asset_tickers:
+        
+        first_value = data["Prix"][data["Ticker"] == ticker].iloc[0]
+        date_first_different_price = data["Date"][(data["Ticker"] == ticker) & (first_value != data["Prix"])].iloc[0]
+        date_first_different_price -= pd.Timedelta(days=1)
+        first_values.append(date_first_different_price)
+
+    first_value = max(first_values)
+
+    col_1, col_2 = st.columns(2)
+
+    with col_1:
+
+        start_date = st.date_input( "Date de début",
+                                    first_value,
+                                    min_value=first_value,
+                                    max_value=data["Date"][data["Ticker"] == ticker].iloc[-20]    )
+
+    with col_2:
+
+        end_date = st.date_input(   "Date de fin",
+                                    data["Date"][data["Ticker"] == ticker].iloc[-1],
+                                    min_value=start_date + pd.Timedelta(days=20),
+                                    max_value=data["Date"][data["Ticker"] == ticker].iloc[-1]   )
+        
+    st.markdown(f"### :violet-badge[:material/pie_chart: Pie Chart] Répartition")
+    st.plotly_chart(graph.graph_category_pie_chart(data,asset_tickers))
+
+    st.markdown(f"### :violet-badge[:material/finance_mode: Prix] Graphique des actifs")
+    st.plotly_chart(graph.graph_price(data,asset_tickers,start_date,end_date))
+
+    st.markdown(f"### :violet-badge[:material/grid_on: Matrice] Heatmap de corrélation des actifs")
+    st.plotly_chart(graph.graph_corr(data,asset_tickers,start_date,end_date))
+
+    st.markdown(f"### :violet-badge[:material/stacked_bar_chart: Barplot] Volatilité des actifs")
+    st.plotly_chart(graph.graph_boxplot_vol(data,asset_tickers,start_date,end_date))
