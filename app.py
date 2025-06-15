@@ -324,5 +324,5 @@ if text_analysis:
 
     if st.toggle("En voir plus",  key="voir_plus_3"):
 
-        st.markdown(f":blue-badge[:material/info: Information] Rapport de Classification")
+        st.markdown(f"### :blue-badge[:material/info: Information] Rapport de Classification")
         st.pyplot(graph.graph_report(classification_report))
