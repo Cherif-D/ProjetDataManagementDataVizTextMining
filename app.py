@@ -1,5 +1,6 @@
 import sys
 import os
+import subprocess
 
 if "__file__" in globals():
     script_dir = os.path.dirname(os.path.abspath(__file__)) 
@@ -15,8 +16,6 @@ import joblib
 
 import texts
 import graph
-from text_sentiment import (    text_cleaner,
-                                generer_wordcloud   )
 from util import (  ticker_to_name,
                     name_to_ticker,
                     adjust_to_last_friday,
@@ -24,6 +23,21 @@ from util import (  ticker_to_name,
                     type_map,
                     secteur_map,
                     benchmark_map   )
+
+if not (    os.path.exists("sentiment_model.joblib") and
+            os.path.exists("tfidf_vectorizer.joblib") and
+            os.path.exists("classification_report.joblib")  ):
+    
+    with st.status( label="Entrainement du modèle de sentiment de texte (~30sec)",
+                    expanded=True   ) as status:
+        
+        st.write("Lancement du script")
+        subprocess.run([sys.executable,"text_sentiment.py"])
+        status.update(label="Entrainement terminé", expanded=False)
+
+
+from text_sentiment import (    text_cleaner,
+                                generer_wordcloud   )
 
 #CREATION D UNE FONCTION D'IMPORT DES DIFFERENTS DATAFRAMES AFIN QU IL SOIT CONSERVE EN MEMOIRE
 @st.cache_data
@@ -258,6 +272,10 @@ if (submit and comparison) or (st.session_state.get("skip", False)):
     st.markdown(f"### :violet-badge[:material/stacked_bar_chart: Barplot] Volatilité des actifs")
     st.plotly_chart(graph.graph_boxplot_vol(data,asset_tickers,start_date,end_date))
 
+##################################################################################################################
+###   MISE EN PAGE TEXT MINING   #################################################################################
+##################################################################################################################
+
 if text_analysis:
 
     st.markdown(f"# :grey-badge[:material/notes:] Text mining")
@@ -303,3 +321,8 @@ if text_analysis:
             sentiment_color = "green"
 
     st.badge(label=f"Le sentiment de l'article est {sentiment}", icon=badge_sentiment, color=sentiment_color)
+
+    if st.toggle("En voir plus",  key="voir_plus_3"):
+
+        st.markdown(f":blue-badge[:material/info: Information] Rapport de Classification")
+        st.pyplot(graph.graph_report(classification_report))

@@ -299,3 +299,11 @@ def graph_category_pie_chart(   df:pd.DataFrame,
     fig.add_pie(labels=benchmark_counts.index, values=benchmark_counts.values, row=1, col=3)
 
     return fig
+
+def graph_report(report_text:str) -> plt.Figure:
+
+    fig, ax = plt.subplots(figsize=(2, 1))
+    ax.axis('off') 
+    ax.text(0, 1, report_text, fontsize=10, fontfamily='monospace', verticalalignment='top')
+
+    return fig
